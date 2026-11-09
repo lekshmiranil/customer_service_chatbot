@@ -38,23 +38,24 @@ The web application opens automatically in your browser. On first startup, if no
 ## Project Architecture & Package Structure
 
 ```
-customer_service_chatbot_LLM/
-├── src/
-│   ├── main.py                       # Streamlit UI & integrated orchestration engine
-│   ├── langchain_helper.py           # FAISS index builder, QA chain, confidence scoring
-│   ├── calibrate_threshold.py        # Confidence threshold calibration tool
-│   ├── pipeline/                     # Task 1: Production Knowledge Base Pipeline
-│   ├── multimodal/                   # Task 2: Multimodal Image, OCR & PDF Analysis
-│   ├── tickets/                      # Task 3: Structured Support Ticket Automation
-│   ├── rag/                          # Task 4: Secure RAG Knowledge Assistant
-│   ├── sentiment/                    # Task 5: Multilingual Sentiment & Escalation
-│   └── multilingual/                 # Task 6: Multilingual Sessions & Understanding
-├── config/                           # SLA, routing, language & threshold configurations
-├── dataset/                          # Staging, raw, quarantine, and quality evaluation sets
-├── rag_corpus/                       # 22 versioned policy, FAQ & troubleshooting documents
-├── uploads/                          # Temporary customer attachments (time-limited)
-├── logs/                             # System metrics, access audit, and ticket event logs
-└── tests/ & evaluation runners       # 51 standalone unit/integration test scripts + 5 eval runners
+customer_service_chatbot/
+├── config/              # SLA, routing, language & threshold configurations
+├── dataset/             # Staging, raw, quarantine, and quality evaluation sets
+├── docs/                # Task documentation & milestone notes
+├── eval/                # Evaluation benchmark scripts & performance outputs
+├── project_archive/     # Historical patch scripts & development backups
+├── rag_corpus/          # Versioned policy, FAQ & troubleshooting documents
+├── src/                 # Core application source code
+│   ├── main.py          # Streamlit UI & integrated orchestration engine
+│   ├── langchain_helper.py # FAISS index builder, QA chain, confidence scoring
+│   ├── calibrate_threshold.py # Confidence threshold calibration tool
+│   ├── pipeline/        # Knowledge Base Pipeline
+│   ├── multimodal/      # Multimodal Image, OCR & PDF Analysis
+│   ├── tickets/         # Structured Support Ticket Automation
+│   ├── rag/             # Secure RAG Knowledge Assistant
+│   ├── sentiment/       # Multilingual Sentiment & Escalation
+│   └── multilingual/    # Multilingual Sessions & Understanding
+└── tests/               # Standalone unit and integration test suite
 ```
 
 ---
