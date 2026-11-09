@@ -1,0 +1,56 @@
+# Task 2: file analysis. Copy these lines into .env and change only what you need.
+# All values shown are the defaults used by the code.
+
+# Uploads and retention
+UPLOAD_DIR=uploads
+UPLOAD_RETENTION_HOURS=24
+RETENTION_SWEEP_MINUTES=10
+MAX_UPLOAD_BYTES=5242880
+MAX_IMAGE_PIXELS=25000000
+MAX_PDF_PAGES=5
+MAX_PDF_OBJECTS=20000
+
+# OCR
+OCR_MAX_SIDE_PIXELS=2400
+OCR_CALL_TIMEOUT_SECONDS=20
+OCR_ROTATION_SEARCH_SECONDS=12
+OCR_MIN_WORDS=5
+OCR_MIN_MEAN_CONFIDENCE=70
+
+# Field matching
+FIELD_MIN_CONFIDENCE=70
+DOCUMENT_DATE_ORDER=DMY
+
+# Hidden-instruction scan
+INJECTION_FAINT_PASS=1
+INJECTION_FAINT_TIMEOUT_SECONDS=10
+
+# Processing and background queue
+PROCESSING_BUDGET_SECONDS=30
+JOB_HARD_LIMIT_SECONDS=120
+JOB_WORKERS=2
+MAX_QUEUED_JOBS=20
+JOB_RESULT_TTL_MINUTES=60
+
+# Testing only, leave unset in normal use:
+# PROCESSING_SIMULATED_DELAY_SECONDS=12
+
+# Task 3: support tickets. All values shown are the defaults used by the code.
+TICKET_CONFIG_PATH=config\ticket_config.json
+TICKET_DB_PATH=ticket_data\tickets.db
+TICKET_LOG_PATH=logs\tickets.jsonl
+TICKET_RECONCILE_SECONDS=60
+
+# Task 4: knowledge assistant. All optional.
+# RAG_CORPUS_DIR=rag_corpus
+# RAG_LOG_PATH=logs\rag.jsonl
+# Fixed "today" for the knowledge assistant, format YYYY-MM-DD. Testing only, leave unset in normal use.
+# RAG_TODAY=2026-10-24
+# Optional Gemini rephrasing (sidebar checkbox, off by default)
+# RAG_GEMINI_DAILY_CAP=8
+# RAG_GEMINI_MODEL=gemini-3.6-flash
+
+# Task 5: sentiment and escalation. All optional.
+# SENTIMENT_DB_PATH=sentiment_data\sentiment.db
+# Fixed "now" for manual after-hours tests, ISO format with a time zone. Testing only, leave unset in normal use.
+# SENTIMENT_NOW=2026-10-27T14:30:00+00:00

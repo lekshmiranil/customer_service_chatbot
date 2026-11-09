@@ -1,0 +1,20 @@
+{
+  "homehub": {
+    "name": "HomeHub X1 smart router",
+    "aliases": [
+      "homehub",
+      "home hub",
+      "hub x1",
+      "x1 router",
+      "router"
+    ]
+  },
+  "careplus": {
+    "name": "CarePlus protection plan",
+    "aliases": [
+      "careplus",
+      "care plus",
+      "protection plan"
+    ]
+  }
+}

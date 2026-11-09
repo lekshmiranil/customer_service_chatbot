@@ -1,0 +1,12 @@
+{
+  "doc_id": "INT-ESC-GL",
+  "title": "Escalation Policy",
+  "doc_type": "policy",
+  "topic": "escalation-policy",
+  "version": "1",
+  "product": "all",
+  "region": "GLOBAL",
+  "access_level": "internal",
+  "effective_date": "2025-01-01",
+  "expiry_date": null
+}

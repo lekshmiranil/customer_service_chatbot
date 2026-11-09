@@ -1,0 +1,12 @@
+{
+  "_help": "Each turn: text, at (minutes since the first message), optional s (session key, default main) and c (customer id). expect keys, all optional: kind (query, clarify, social, handoff), language (en hi ml ta te kn), intents (list, all must be present), query_has and query_lacks (lists of text), status (active, restored, new), notice (restored, expired_new, or empty), notice_has (text), reason, resolved_from, switched, mixed, escalated, last_order, name, turns_min.",
+  "conversations": [
+    {
+      "id": "user_01",
+      "title": "order status inquiry",
+      "turns": [
+        {"text": "where is my order ORD-12345", "at": 0, "expect": {"kind": "query", "intents": ["order_status"], "query_has": ["ORD-12345"]}}
+      ]
+    }
+  ]
+}

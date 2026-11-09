@@ -1,0 +1,13 @@
+
+# Expectation log (2026-11-07)
+
+- user_02: EXPECTATION ERROR, corrected after seeing the result. Original expectation: kind query, intent
+  return_request. Problems: return_request is not one of the ten intents, and the message has no order ID, so the
+  layer correctly asks for it (kind clarify, intent return_exchange). Counted as an expectation error, not a pass:
+  user-written 5/8 as first run, 6/8 only after this correction.
+- user_04 (billing) and user_05 (device fault): real capability gaps, outside the ten intents. Not changed.
+- unseen_04: OPEN. Hindi and English mixed sentence reported as en with mixed True; expected hi. Which language the
+  reply should use is undecided. Expectation not changed.
+- unseen_07: OPEN. 'and that one?' with one order in context resolves to that order; expected clarify. Whether that
+  is acceptable is undecided. Expectation not changed.
+- unseen_04 and unseen_07 were written by the assistant, not blind.

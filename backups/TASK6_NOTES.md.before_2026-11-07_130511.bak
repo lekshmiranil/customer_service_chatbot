@@ -1,0 +1,63 @@
+# Task 6: Multilingual understanding and sessions
+
+## What was built
+A plain-Python package, src\multilingual. It has no Streamlit, no model and uses only the standard library. The clock is an argument, and the bridge never raises (it sets LAST_ERROR instead). Languages: English, Hindi, Malayalam, Tamil, Telugu, Kannada, in native script and Roman transliteration.
+
+Modules: config, lexicon, lexicon_cues, languages, intents, entities, summary, session_store, replies, dialogue, bridge.
+
+## How one message is handled
+1. bridge.handle_turn resolves the session: active, restored from a summary, or new.
+2. dialogue.handle_message extracts entities (order IDs, product codes, dates, names) exactly as typed and masks them.
+3. The language is detected. A short low-confidence message keeps the session language. A clear message in another language switches it. A mixed message keeps both languages. Low confidence or an unsupported script asks the customer to choose a language.
+4. Intents are found per clause (up to max_requests). Spelling errors and transliterated words are tolerated.
+5. Short follow-ups ("and the refund?", "and ORD-123?") are resolved from the last intents or a pending request. A correction replaces the remembered value and is reported.
+6. If an intent needs an order ID and none is known, the customer is asked for it and the request stays pending.
+7. Low intent confidence or two competing intents asks a clarifying question.
+8. Otherwise an English query is built from the intent plus the preserved entities and passed to the existing answer code. The lead line and notices are in the customer's language. The answer body stays English because the knowledge base search is English only.
+
+## Sessions
+- Ends after inactivity_minutes (30) without a message.
+- If the same customer returns within restore_window_hours (24), the conversation summary is restored. Otherwise a new session starts and the customer is told.
+- Sessions are isolated by session id. The Customer ID box in the sidebar is a demo selector, not a login. Without a customer ID only the same session id can be restored.
+- At least context_min_turns (10) messages are kept. store_max_turns (40) turns are stored per session.
+- Data: session_data\sessions.db. Customer messages are stored as typed.
+
+## Configuration
+config\multilingual_config.json merged over defaults. Keys: languages, default_language, session (inactivity_minutes, restore_window_hours, context_min_turns, store_max_turns), thresholds (language_confidence, intent_confidence, intent_margin, fuzzy_cutoff, followup_max_words, mixed_second_share, general_question_min_words), max_requests, intents_need_order, entities (order_prefixes, product_prefixes). Optional thresholds.inherit_confidence (default 0.75) is read by dialogue.py.
+Environment variables: MULTILINGUAL_CONFIG_PATH, MULTILINGUAL_DB_PATH, MULTILINGUAL_NOW (simulated clock).
+
+## Checks
+Close Streamlit first. No test uses the model or the Gemini quota.
+python test_multilingual_languages.py
+python test_multilingual_entities.py
+python test_multilingual_dialogue.py
+python test_multilingual_extra.py
+python test_multilingual_session.py
+python eval_multilingual_run.py   (writes eval_results_multilingual.md)
+
+## Evaluation
+Two separate scores are reported. The assistant-written set (15 conversations) was written after the code existed, so it is not a blind result. On 2026-11-03 it scored 15/15 conversations and 42/42 turn checks. The user-written set is in eval_user_conversations.json and is the unseen set. On 2026-11-04 the first run of the five user-written conversations scored 2/5 conversations and 2/5 turn checks (user_01 and user_03 passed). The first-run report is kept in backups\eval_results_multilingual_first_run.md and the latest report is in eval_results_multilingual.md. The three failures have two causes, found by reading the code after the run. user_02 used an intent name that does not exist (return_request; the layer uses return_exchange) and expected an answer where the layer asks for the missing order ID, which is its designed behaviour, so both of its failures are errors in the test expectation. user_04 (a question about a bill) and user_05 (a device fault) fall outside the ten intents the layer supports (order_status, cancel_order, refund, return_exchange, payment_issue, delivery_issue, product_info, human_agent, greeting, thanks), which is a scope gap. user_05 returned kind query with no intent, which is consistent with the fallback in dialogue.py that sends English text of four or more words with no recognised intent to the knowledge assistant unchanged. Neither the expectations nor the cue lists were changed to raise this score, and these five conversations are no longer unseen.
+
+## Known limits
+- The cue lists for Hindi, Malayalam, Tamil, Telugu and Kannada and all replies in those languages were written by an AI and have not been reviewed by a native speaker.
+- Order ID and product code formats are assumptions (prefix lists in the config).
+- Months in dates are recognised in English only.
+- Names are found only after a marker phrase such as "my name is" or "mera naam".
+- Correction detection uses marker words. Rule-based intent matching misses subtle phrasing.
+- Four-letter words are matched with a stricter spelling rule to avoid false hits, so some four-letter typos are missed.
+- Knowledge answers stay English.
+- Sentiment analysis (Task 5) detects language by script as en, hi or ml, so Tamil, Telugu and Kannada messages are not analysed in their own language.
+- Old session rows are not purged by this task.
+
+## Follow-ups after the first evaluation (2026-11-04)
+Masking before storage. src\multilingual\masking.py masks card numbers, phone numbers and e-mail addresses in the customer text, the stored query, the bot reply and held_text before they are written to session_data\sessions.db. Detection still runs on the unmasked text in memory. Order IDs are kept, including long numeric ones (the older mask_sensitive_data in src\pipeline\security.py does not mask +91 98765 43210 and damages ORD-1234567890, so it is not used here). The saved session state keeps order IDs, names and dates unmasked because restoring a session needs them. Limits: an unprefixed 10-digit number starting with 6 to 9 is treated as a phone number; 12-digit government ID numbers are not masked. Test: test_multilingual_masking.py.
+Tickets. text_trigger (src\tickets\chat_bridge.py) reads the raw question and the answer kind, not the multilingual kind. A clarification or a social reply raises no ticket. A handoff from the multilingual layer now gets the reason customer_unresolved in any language (before this change a non-English handoff got low_confidence and its ticket lacked the previous exchange). Unresolved wording in the customer text is still detected in English only, and repeated clarifications are not counted. Test: test_multilingual_ticket_trigger.py (function level; the Streamlit screen was not checked by this test).
+Findings from the user-written evaluation. user_02 was an error in the test expectation. user_04 (a question about a bill) and user_05 (a device fault) are outside the ten supported intents. When no intent is found and the text is detected as English with four or more words, the layer sends it unchanged to the knowledge assistant instead of asking for clarification (user_05 shows this).
+Malayalam handoff probe. One Malayalam phrase written by the assistant (enikku oru manushyanodu samsarikkanam) was not recognised as a request for a person (kind clarify, no intent). The phrase was not reviewed by a native speaker, so this shows a possible gap, not a measured rate. Two Roman-script Hindi phrases were recognised as handoff.
+Database. The six test sessions of customer cust1 (simulated dates, test sentences) were removed from sessions.db on 2026-11-04 after a backup. The test scripts and the evaluation do not write to the real database.
+
+## Safety net, Malayalam handoff cues and holdout result (2026-11-04)
+Safety net. When the layer finds no intent twice in a row (the clarification that asks what the customer needs), the second message gets a handoff with the reason repeated_unclear instead of a third question. Any other result resets the count: a recognised request, a greeting or thanks, a question about a missing order ID, or an either/or question. The ticket code treats this handoff like any other (reason customer_unresolved). Optional thresholds.unclear_before_handoff (default 2; values below 2 are ignored) is read by dialogue.py and is not set in config\multilingual_config.json. Not covered: a customer who keeps getting the "which language?" question, and one who keeps getting either/or questions. Test: test_multilingual_safety_net.py (the language is forced to English so that only the counter is tested).
+Malayalam cues. user_06 (a Roman Malayalam request for a person) failed on the first run. A probe showed the message was detected as Malayalam and returned no_intent, so the cause was missing cue vocabulary, not language detection. The project author, a Malayalam speaker, then wrote six further phrasings, all built on the word manushyan. The words manushyan, manushya, manushyanod and manushyanodu were added to the Malayalam human_agent cues, together with the Roman word agent (added by the assistant, not from the author's list, as the Hindi cues already do). All seven phrasings now return a handoff, including "manushyan aano?" (are you a human?), which also hands off, as the English word human already does.
+Holdout. Two further phrasings, written by the author without the assistant seeing them and with wording different from the six: user_07 passed and user_08 failed. The user-written set therefore stands at 4/8 conversations: the first five scored 2/5 on the first run, user_06 passes only because its vocabulary was added afterwards (fitted, not unseen), and the holdout scored 1/2. Two phrasings do not give a rate; they show that the Malayalam cue coverage is partial. user_08 was detected as Malayalam (confidence 0.667) and returned no_intent, which points to a missing cue word. It was left unfixed on purpose, as a finding. A probe that sent the same text twice showed the safety net working: a clarification on the first message, a handoff with repeated_unclear on the second, and ticket reason customer_unresolved at function level (the Streamlit screen was not checked for this path).
+Further limits. Roman-letter human_agent cues were not added for Tamil, Telugu or Kannada (their human_agent word lists are in native script and each has one Roman phrase). Only the Malayalam human_agent additions above come from a native speaker; the other cue lists are still AI-written and unreviewed. A new Malayalam holdout written by people other than the author would give a better estimate.

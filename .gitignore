@@ -1,0 +1,39 @@
+.env
+logs/
+__pycache__/
+*.pyc
+.venv/
+venv/
+faiss_index/
+faiss_candidate/
+faiss_versions/
+dataset/staging/
+dataset/quarantine/
+.env.*
+!.env.example
+
+uploads/
+test_files/
+ticket_data/
+session_data/
+sentiment_data/
+
+# Vector indexes & candidates (large binaries)
+faiss_index/
+faiss_candidate/
+faiss_versions/
+
+# Runtime / generated data (PII, large DBs, logs)
+session_data/
+sentiment_data/
+ticket_data/
+uploads/
+logs/
+*.sqlite*
+*.sqlite-journal
+
+# Dataset / processing artefacts
+dataset/quarantine/
+dataset/update_in_progress.json
+*.pyc
+__pycache__/

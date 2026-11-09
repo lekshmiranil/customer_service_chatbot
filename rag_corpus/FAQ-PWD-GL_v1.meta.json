@@ -1,0 +1,12 @@
+{
+  "doc_id": "FAQ-PWD-GL",
+  "title": "Account Password FAQ",
+  "doc_type": "faq",
+  "topic": "password-reset",
+  "version": "1",
+  "product": "homehub",
+  "region": "GLOBAL",
+  "access_level": "public",
+  "effective_date": "2024-01-01",
+  "expiry_date": null
+}

@@ -1,0 +1,58 @@
+{
+  "_help": "Assistant-written set, NOT blind. Same format as eval_user_conversations.json. at = minutes since the first message, s = session key, c = customer id.",
+  "conversations": [
+    {"id": "unseen_01", "title": "roman hindi with spelling errors", "turns": [
+      {"text": "mera ordr kab ayega ORD-48213", "at": 0, "expect": {"kind": "query", "language": "hi", "intents": ["order_status"], "query_has": ["ORD-48213"]}}]},
+    {"id": "unseen_02", "title": "roman tamil delivery problem", "turns": [
+      {"text": "enoda order innum varala ORD-52077", "at": 0, "expect": {"kind": "query", "language": "ta", "intents": ["delivery_issue"], "query_has": ["ORD-52077"]}}]},
+    {"id": "unseen_03", "title": "roman malayalam cancel", "turns": [
+      {"text": "ente order ORD-70415 cancel cheyyanam", "at": 0, "expect": {"kind": "query", "language": "ml", "intents": ["cancel_order"], "query_has": ["ORD-70415"]}}]},
+    {"id": "unseen_04", "title": "hindi and english mixed", "turns": [
+      {"text": "mujhe refund chahiye for order ORD-33902 please", "at": 0, "expect": {"kind": "query", "language": "hi", "intents": ["refund"], "query_has": ["ORD-33902"]}}]},
+    {"id": "unseen_05", "title": "language switches across three messages", "turns": [
+      {"text": "hello", "at": 0, "expect": {"kind": "social", "intents": ["greeting"]}},
+      {"text": "mera refund kab milega ORD-61188", "at": 1, "expect": {"kind": "query", "language": "hi", "intents": ["refund"], "query_has": ["ORD-61188"]}},
+      {"text": "ente order vannilla", "at": 2, "expect": {"kind": "query", "language": "ml", "switched": true, "intents": ["delivery_issue"], "last_order": "ORD-61188"}}]},
+    {"id": "unseen_06", "title": "name, id and date kept for a follow-up", "turns": [
+      {"text": "I am Anitha Menon, my order ORD-84120 placed on 3 March 2026 needs a refund", "at": 0, "expect": {"kind": "query", "intents": ["refund"], "query_has": ["ORD-84120"], "name": "Anitha Menon"}},
+      {"text": "and when will it arrive?", "at": 1, "expect": {"kind": "query", "intents": ["order_status"], "last_order": "ORD-84120"}}]},
+    {"id": "unseen_07", "title": "ambiguous follow-up with no clear referent", "turns": [
+      {"text": "where is my order ORD-19001", "at": 0, "expect": {"kind": "query", "intents": ["order_status"]}},
+      {"text": "and that one?", "at": 1, "expect": {"kind": "clarify"}}]},
+    {"id": "unseen_08", "title": "two requests in roman malayalam", "turns": [
+      {"text": "refund venam, pinne delivery late aanu ORD-45550", "at": 0, "expect": {"kind": "query", "language": "ml", "intents": ["refund", "delivery_issue"], "query_has": ["ORD-45550"]}}]},
+    {"id": "unseen_09", "title": "corrected order id", "turns": [
+      {"text": "cancel my order ORD-27001", "at": 0, "expect": {"kind": "query", "intents": ["cancel_order"], "last_order": "ORD-27001"}},
+      {"text": "sorry, wrong number, it is ORD-27002", "at": 1, "expect": {"kind": "query", "intents": ["cancel_order"], "last_order": "ORD-27002"}}]},
+    {"id": "unseen_10", "title": "out of scope twice, then handoff", "turns": [
+      {"text": "mujhe GST bill chahiye", "at": 0, "expect": {"kind": "clarify"}},
+      {"text": "meri screen kaam nahi kar rahi", "at": 1, "expect": {"kind": "handoff", "escalated": true}}]},
+    {"id": "unseen_11", "title": "malayalam person request, new wording", "turns": [
+      {"text": "enikk oru manushyanumayi samsarikkanam", "at": 0, "expect": {"kind": "handoff", "language": "ml", "intents": ["human_agent"], "escalated": true}}]},
+    {"id": "unseen_12", "title": "product code kept", "turns": [
+      {"text": "SKU-4521 ki keemat kya hai", "at": 0, "expect": {"kind": "query", "language": "hi", "intents": ["product_info"], "query_has": ["SKU-4521"]}}]},
+    {"id": "unseen_13", "title": "long context, 12 messages", "turns": [
+      {"text": "mera order ORD-90321 kab aayega", "at": 0, "expect": {"kind": "query", "intents": ["order_status"], "query_has": ["ORD-90321"]}},
+      {"text": "hello", "at": 1}, {"text": "thanks", "at": 2}, {"text": "hello", "at": 3}, {"text": "thanks", "at": 4},
+      {"text": "hello", "at": 5}, {"text": "thanks", "at": 6}, {"text": "hello", "at": 7}, {"text": "thanks", "at": 8},
+      {"text": "hello", "at": 9}, {"text": "thanks", "at": 10},
+      {"text": "and the refund?", "at": 11, "expect": {"kind": "query", "intents": ["refund"], "query_has": ["ORD-90321"], "last_order": "ORD-90321", "turns_min": 24}}]},
+    {"id": "unseen_14", "title": "two customers at the same time", "turns": [
+      {"text": "where is my order ORD-11111", "at": 0, "s": "A", "c": "custA", "expect": {"kind": "query", "query_has": ["ORD-11111"]}},
+      {"text": "where is my order ORD-22222", "at": 0, "s": "B", "c": "custB", "expect": {"kind": "query", "query_has": ["ORD-22222"]}},
+      {"text": "and the refund?", "at": 1, "s": "A", "c": "custA", "expect": {"kind": "query", "intents": ["refund"], "last_order": "ORD-11111", "query_has": ["ORD-11111"], "query_lacks": ["ORD-22222"]}},
+      {"text": "and the refund?", "at": 1, "s": "B", "c": "custB", "expect": {"kind": "query", "intents": ["refund"], "last_order": "ORD-22222", "query_has": ["ORD-22222"], "query_lacks": ["ORD-11111"]}}]},
+    {"id": "unseen_15", "title": "return after 31 minutes, summary restored", "turns": [
+      {"text": "where is my order ORD-50101", "at": 0, "c": "custE1", "expect": {"kind": "query", "intents": ["order_status"]}},
+      {"text": "hello", "at": 31, "c": "custE1", "expect": {"status": "restored", "notice": "restored"}}]},
+    {"id": "unseen_16", "title": "return after 23 hours, still restored", "turns": [
+      {"text": "where is my order ORD-50202", "at": 0, "c": "custE2", "expect": {"kind": "query", "intents": ["order_status"]}},
+      {"text": "hello", "at": 1380, "c": "custE2", "expect": {"status": "restored", "notice": "restored"}}]},
+    {"id": "unseen_17", "title": "return after 25 hours, new session", "turns": [
+      {"text": "where is my order ORD-50303", "at": 0, "c": "custE3", "expect": {"kind": "query", "intents": ["order_status"]}},
+      {"text": "hello", "at": 1500, "c": "custE3", "expect": {"status": "new", "notice": "expired_new"}}]},
+    {"id": "unseen_18", "title": "return after 20 minutes, same session", "turns": [
+      {"text": "where is my order ORD-50404", "at": 0, "c": "custE4", "expect": {"kind": "query", "intents": ["order_status"]}},
+      {"text": "hello", "at": 20, "c": "custE4", "expect": {"status": "active", "notice": ""}}]}
+  ]
+}

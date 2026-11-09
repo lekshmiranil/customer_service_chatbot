@@ -1,0 +1,213 @@
+"""Entity extraction for one message: order IDs, product codes, dates and names. Values are kept exactly as the
+customer typed them. mask() blanks the entity spans so they cannot disturb language or intent detection.
+update_slots() applies new values and corrections to the values remembered for the session.
+Plain Python, no model. Save this file as UTF-8."""
+import re
+
+from src.multilingual import languages
+
+_MONTH = (
+    "january|february|march|april|may|june|july|august|september|october|november|december|"
+    "jan|feb|mar|apr|jun|jul|aug|sept|sep|oct|nov|dec"
+)
+_ISO_RE = re.compile(r"(?<![\d\-/.])\d{4}-\d{2}-\d{2}(?!\d)")
+_NUMERIC_RE = re.compile(r"(?<![\d/.\-])\d{1,2}[/.\-]\d{1,2}[/.\-](?:\d{4}|\d{2})(?![\d/])")
+_DAY_MONTH_RE = re.compile(
+    rf"(?<![\d/.\-])\d{{1,2}}(?:st|nd|rd|th)?\s+(?:of\s+)?(?:{_MONTH})\b(?:,?\s+\d{{4}}(?!\d))?",
+    re.IGNORECASE,
+)
+_MONTH_DAY_RE = re.compile(
+    rf"(?<![A-Za-z])(?:{_MONTH})\.?\s+\d{{1,2}}(?:st|nd|rd|th)?(?!\d)(?:,?\s+\d{{4}}(?!\d))?",
+    re.IGNORECASE,
+)
+_ORDER_LABEL_RE = re.compile(
+    r"(?<![A-Za-z])(?:order|booking|invoice)\b\s*(?:id|no\.?|number|num|#)?[\s:#\-]*(?:is\s+)?"
+    r"([A-Za-z0-9][A-Za-z0-9\-/]{3,29})",
+    re.IGNORECASE,
+)
+_PRODUCT_LABEL_RE = re.compile(
+    r"(?<![A-Za-z])(?:product|item|sku|model)\b\s*(?:code|id|no\.?|number|num|#)?[\s:#\-]*(?:is\s+)?"
+    r"([A-Za-z0-9][A-Za-z0-9\-/]{2,29})",
+    re.IGNORECASE,
+)
+
+# Marker phrases that introduce a name, in English and in the five other languages (native script and Roman letters).
+NAME_MARKERS = (
+    ("my", "name", "is"), ("my", "name"),
+    ("mera", "naam"), ("मेरा", "नाम"),
+    ("ente", "peru"), ("ente", "per"), ("എന്റെ", "പേര്"),
+    ("ennoda", "peyar"), ("en", "peyar"), ("என்னோட", "பெயர்"), ("என்", "பெயர்"),
+    ("naa", "peru"), ("na", "peru"), ("నా", "పేరు"),
+    ("nanna", "hesaru"), ("ನನ್ನ", "ಹೆಸರು"),
+)
+NAME_STOP = {
+    "and", "or", "order", "my", "is", "am", "please", "pls", "from", "here", "the", "i", "ok",
+    "hai", "hain", "hoon", "hun", "aur", "aanu", "aan", "andi", "ide", "ante", "ennu", "ennanu", "ennaanu",
+    "है", "हैं", "हूँ", "हूं", "और", "ആണ്", "ആണു", "ஆகும்", "అండి", "ఉంది", "ಆಗಿದೆ", "ಮತ್ತು",
+}
+
+
+def _marker_pattern(words):
+    return r"\s+".join(re.escape(word) for word in words)
+
+
+_NAME_RE = re.compile(
+    r"(?<!\w)(?:" + "|".join(_marker_pattern(words) for words in NAME_MARKERS) + r")(?!\w)[\s:,\-]*(\S+(?:\s+\S+){0,2})",
+    re.IGNORECASE,
+)
+_PREFIX_CACHE = {}
+_LIMITS = {"order_ids": 5, "product_codes": 5, "dates": 3}
+
+
+def _prefixed(prefixes):
+    key = tuple(prefixes or ())
+    if key not in _PREFIX_CACHE:
+        names = sorted({str(item) for item in key if item}, key=len, reverse=True)
+        if names:
+            _PREFIX_CACHE[key] = re.compile(
+                r"(?<![A-Za-z0-9])(?:" + "|".join(re.escape(name) for name in names) + r")[-_#]?\s?\d[A-Za-z0-9\-/]{2,24}(?![A-Za-z0-9])",
+                re.IGNORECASE,
+            )
+        else:
+            _PREFIX_CACHE[key] = None
+    return _PREFIX_CACHE[key]
+
+
+def _trim_end(start, value):
+    return start + len(value.rstrip("-/_"))
+
+
+_IAM_RE = re.compile(
+    r"(?<![\w'\u2019])(?i:i\s+am|i['\u2019]m)(?![\w'\u2019])[\s:,\-]*"
+    r"([A-Z][A-Za-z'\u2019.\-]*(?:\s+[A-Z][A-Za-z'\u2019.\-]*){0,2})"
+)
+_IAM_STOP = {
+    "a", "an", "the", "not", "very", "so", "also", "just", "still", "sorry", "here", "new",
+    "from", "in", "at", "waiting", "looking", "trying", "calling", "writing", "having", "facing",
+    "getting", "unable", "happy", "angry", "upset", "confused", "frustrated", "disappointed", "annoyed",
+}
+
+
+def _name_span(match, text, extra_stop=()):
+    chunk = match.group(1)
+    base = match.start(1)
+    first = None
+    last_end = None
+    for token in re.finditer(r"\S+", chunk):
+        raw = token.group(0)
+        word = raw.strip(languages.EDGE)
+        if not word or word.lower() in NAME_STOP or word.lower() in extra_stop or any(char.isdigit() for char in word):
+            break
+        lead = raw.find(word)
+        if first is None:
+            first = token.start() + lead
+        last_end = token.start() + lead + len(word)
+        if raw[-1] in ".,;:!?\u0964":
+            break
+    if first is None:
+        return None
+    return base + first, base + last_end
+
+
+def extract(text, cfg=None):
+    """Entities found in the text, in order of appearance. Values are exactly as typed."""
+    text = str(text or "")
+    settings = (cfg or {}).get("entities", {})
+    items = []
+    taken = []
+
+    def add(kind, start, end):
+        if end <= start:
+            return
+        for low, high in taken:
+            if start < high and low < end:
+                return
+        taken.append((start, end))
+        items.append({"type": kind, "value": text[start:end], "start": start, "end": end})
+
+    order_re = _prefixed(settings.get("order_prefixes", ()))
+    if order_re:
+        for match in order_re.finditer(text):
+            add("order", match.start(), _trim_end(match.start(), match.group(0)))
+    for match in _ORDER_LABEL_RE.finditer(text):
+        value = match.group(1).rstrip("-/")
+        if any(char.isdigit() for char in value):
+            add("order", match.start(1), match.start(1) + len(value))
+    product_re = _prefixed(settings.get("product_prefixes", ()))
+    if product_re:
+        for match in product_re.finditer(text):
+            add("product", match.start(), _trim_end(match.start(), match.group(0)))
+    for match in _PRODUCT_LABEL_RE.finditer(text):
+        value = match.group(1).rstrip("-/")
+        if any(char.isdigit() for char in value) and any(char.isalpha() for char in value):
+            add("product", match.start(1), match.start(1) + len(value))
+    for regex in (_ISO_RE, _NUMERIC_RE, _DAY_MONTH_RE, _MONTH_DAY_RE):
+        for match in regex.finditer(text):
+            add("date", match.start(), match.end())
+    for match in _NAME_RE.finditer(text):
+        span = _name_span(match, text)
+        if span:
+            add("name", span[0], span[1])
+    for match in _IAM_RE.finditer(text):
+        span = _name_span(match, text, _IAM_STOP)
+        if span:
+            add("name", span[0], span[1])
+    items.sort(key=lambda item: item["start"])
+    result = {"items": items, "order_ids": [], "product_codes": [], "dates": [], "names": []}
+    keys = {"order": "order_ids", "product": "product_codes", "date": "dates", "name": "names"}
+    for item in items:
+        result[keys[item["type"]]].append(item["value"])
+    return result
+
+
+def mask(text, items):
+    """The text with every entity span replaced by spaces. The length and the positions stay the same."""
+    chars = list(str(text or ""))
+    for item in items or []:
+        for position in range(item["start"], min(item["end"], len(chars))):
+            chars[position] = " "
+    return "".join(chars)
+
+
+def empty_slots():
+    return {"order_ids": [], "product_codes": [], "dates": [], "name": "", "corrections": []}
+
+
+def same(first, second):
+    return re.sub(r"\s+", "", str(first)).upper() == re.sub(r"\s+", "", str(second)).upper()
+
+
+def update_slots(slots, found, correction=False):
+    """Returns (new slots, changes). A correction replaces a remembered value. Without a correction marker a new
+    value is added, so a customer can talk about two orders. The last value of each kind is the current one."""
+    new = empty_slots()
+    for key, value in (slots or {}).items():
+        new[key] = list(value) if isinstance(value, list) else value
+    changes = []
+    for key in ("order_ids", "product_codes", "dates"):
+        values = list((found or {}).get(key) or [])
+        if not values:
+            continue
+        active = new[key]
+        if correction and (active or len(values) > 1):
+            target = values[-1]
+            earlier = values[:-1]
+            removed = [v for v in active if any(same(v, e) for e in earlier) and not same(v, target)]
+            if not removed and active and not any(same(v, target) for v in active):
+                removed = [active[-1]]
+            for old in removed:
+                active[:] = [v for v in active if not same(v, old)]
+                changes.append({"type": key, "old": old, "new": target})
+            values = [target]
+        for value in values:
+            active[:] = [v for v in active if not same(v, value)]
+            active.append(value)
+        del active[:-_LIMITS[key]]
+    names = list((found or {}).get("names") or [])
+    if names and names[-1] != new.get("name"):
+        if new.get("name"):
+            changes.append({"type": "name", "old": new["name"], "new": names[-1]})
+        new["name"] = names[-1]
+    if changes:
+        new["corrections"] = (list(new.get("corrections") or []) + changes)[-10:]
+    return new, changes

@@ -1,0 +1,15 @@
+﻿.env
+logs/
+__pycache__/
+*.pyc
+.venv/
+venv/
+faiss_index/
+faiss_versions/
+dataset/staging/
+dataset/quarantine/
+.env.*
+!.env.example
+
+uploads/
+test_files/

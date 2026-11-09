@@ -1,0 +1,277 @@
+{
+  "timezone": "Asia/Kolkata",
+  "business_hours": {
+    "start": "09:00",
+    "end": "18:00",
+    "working_days": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ]
+  },
+  "holidays": [
+    {
+      "date": "2026-12-25",
+      "name": "Sample holiday: Christmas Day"
+    },
+    {
+      "date": "2027-01-26",
+      "name": "Sample holiday: Republic Day"
+    }
+  ],
+  "after_hours": {
+    "policy": "queue_until_open",
+    "critical_uses_on_call": true
+  },
+  "fallback_queue": "unassigned_queue",
+  "urgent_priorities": [
+    "critical",
+    "high"
+  ],
+  "mandatory_fields": {
+    "default": [
+      "order_id",
+      "contact",
+      "issue_description"
+    ],
+    "by_category": {
+      "general": [
+        "contact",
+        "issue_description"
+      ]
+    }
+  },
+  "sla": {
+    "warning_fraction": 0.75,
+    "policies": {
+      "critical": {
+        "target_minutes": 240,
+        "basis": "calendar"
+      },
+      "high": {
+        "target_minutes": 480,
+        "basis": "business"
+      },
+      "medium": {
+        "target_minutes": 1080,
+        "basis": "business"
+      },
+      "low": {
+        "target_minutes": 2700,
+        "basis": "business"
+      }
+    },
+    "overrides": [
+      {
+        "issue_category": "payment",
+        "priority": "high",
+        "target_minutes": 240,
+        "basis": "business"
+      }
+    ]
+  },
+  "priority": {
+    "severity_points": {
+      "low": 0,
+      "medium": 15,
+      "high": 30,
+      "critical": 45
+    },
+    "impact_points": {
+      "single_customer": 0,
+      "multiple_orders": 8,
+      "account_wide": 15,
+      "widespread": 20
+    },
+    "sentiment_points": {
+      "positive": 0,
+      "neutral": 0,
+      "negative": 5,
+      "very_negative": 10
+    },
+    "waiting_points": [
+      {
+        "min_hours": 4,
+        "points": 5
+      },
+      {
+        "min_hours": 24,
+        "points": 10
+      },
+      {
+        "min_hours": 48,
+        "points": 15
+      }
+    ],
+    "sla_points": [
+      {
+        "min_consumed": 0.5,
+        "points": 5
+      },
+      {
+        "min_consumed": 0.75,
+        "points": 12
+      },
+      {
+        "min_consumed": 1.0,
+        "points": 20
+      }
+    ],
+    "sla_class_thresholds": {
+      "critical": 60,
+      "high": 35,
+      "medium": 15
+    },
+    "thresholds": {
+      "critical": 70,
+      "high": 45,
+      "medium": 20
+    },
+    "floors": {
+      "critical_severity_min": "high",
+      "sla_warning_min": "medium",
+      "sla_breached_min": "high"
+    },
+    "sentiment_max_levels_raise": 1
+  },
+  "duplicates": {
+    "window_hours": 72,
+    "min_similarity": 0.6,
+    "related_min_similarity": 0.3
+  },
+  "routing": {
+    "teams": [
+      "orders",
+      "billing",
+      "product_support",
+      "technical",
+      "general_support"
+    ],
+    "categories": {
+      "order": {
+        "team": "orders",
+        "skills": [
+          "orders"
+        ]
+      },
+      "delivery": {
+        "team": "orders",
+        "skills": [
+          "orders"
+        ]
+      },
+      "payment": {
+        "team": "billing",
+        "skills": [
+          "billing"
+        ]
+      },
+      "refund": {
+        "team": "billing",
+        "skills": [
+          "billing"
+        ]
+      },
+      "product": {
+        "team": "product_support",
+        "skills": [
+          "product"
+        ]
+      },
+      "technical": {
+        "team": "technical",
+        "skills": [
+          "technical"
+        ]
+      },
+      "account": {
+        "team": "general_support",
+        "skills": [
+          "general"
+        ]
+      },
+      "general": {
+        "team": "general_support",
+        "skills": [
+          "general"
+        ]
+      }
+    },
+    "agents": [
+      {
+        "id": "agent_orders_1",
+        "team": "orders",
+        "skills": [
+          "orders",
+          "general"
+        ],
+        "available": true,
+        "max_open": 5,
+        "on_call": false
+      },
+      {
+        "id": "agent_orders_2",
+        "team": "orders",
+        "skills": [
+          "orders"
+        ],
+        "available": true,
+        "max_open": 5,
+        "on_call": false
+      },
+      {
+        "id": "agent_billing_1",
+        "team": "billing",
+        "skills": [
+          "billing"
+        ],
+        "available": true,
+        "max_open": 4,
+        "on_call": false
+      },
+      {
+        "id": "agent_product_1",
+        "team": "product_support",
+        "skills": [
+          "product"
+        ],
+        "available": true,
+        "max_open": 5,
+        "on_call": false
+      },
+      {
+        "id": "agent_tech_1",
+        "team": "technical",
+        "skills": [
+          "technical"
+        ],
+        "available": true,
+        "max_open": 4,
+        "on_call": true
+      },
+      {
+        "id": "agent_general_1",
+        "team": "general_support",
+        "skills": [
+          "general",
+          "product"
+        ],
+        "available": true,
+        "max_open": 5,
+        "on_call": false
+      },
+      {
+        "id": "agent_general_2",
+        "team": "general_support",
+        "skills": [
+          "general"
+        ],
+        "available": true,
+        "max_open": 5,
+        "on_call": false
+      }
+    ]
+  }
+}

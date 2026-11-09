@@ -1,0 +1,12 @@
+{
+  "doc_id": "POL-CAN-B",
+  "title": "Order Cancellation Policy (sales team copy)",
+  "doc_type": "policy",
+  "topic": "cancellation-policy",
+  "version": "1",
+  "product": "homehub",
+  "region": "GLOBAL",
+  "access_level": "public",
+  "effective_date": "2026-03-01",
+  "expiry_date": null
+}

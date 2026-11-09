@@ -1,0 +1,12 @@
+{
+  "doc_id": "POL-WAR-GL",
+  "title": "HomeHub Warranty Policy",
+  "doc_type": "policy",
+  "topic": "warranty-policy",
+  "version": "1",
+  "product": "homehub",
+  "region": "GLOBAL",
+  "access_level": "public",
+  "effective_date": "2023-01-01",
+  "expiry_date": "2025-12-31"
+}

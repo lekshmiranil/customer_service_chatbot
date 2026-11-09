@@ -1,0 +1,11 @@
+langchain==0.0.339
+python-dotenv==1.0.0
+streamlit==1.22.0
+tiktoken==0.4.0
+faiss-cpu==1.7.4
+protobuf~=3.19.0
+sentence-transformers==3.4.1
+pytesseract==0.3.13
+Pillow==12.3.0
+filetype==1.2.0
+PyMuPDF==1.28.2

@@ -1,0 +1,22 @@
+[
+  {
+    "question": "What if I don't like this bootcamp?",
+    "expected_keywords": ["refund", "guidelines", "policy"]
+  },
+  {
+  "question": "Does this bootcamp have lifetime access?",
+  "expected_keywords": ["yes", "lifetime"]
+  },
+  {
+    "question": "Is there an EMI option?",
+    "expected_keywords": ["no"]
+  },
+  {
+  "question": "Do you provide any virtual internship?",
+  "expected_keywords": ["yes", "internship"]
+  },
+  {
+    "question": "What is the minimum RAM required for the laptop?",
+    "expected_keywords": ["4gb", "ram", "laptop"]
+  }
+]

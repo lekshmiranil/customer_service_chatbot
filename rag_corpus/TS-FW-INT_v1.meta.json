@@ -1,0 +1,12 @@
+{
+  "doc_id": "TS-FW-INT",
+  "title": "Firmware Rollback Procedure",
+  "doc_type": "troubleshooting",
+  "topic": "firmware-rollback",
+  "version": "1",
+  "product": "homehub",
+  "region": "GLOBAL",
+  "access_level": "internal",
+  "effective_date": "2025-01-01",
+  "expiry_date": null
+}

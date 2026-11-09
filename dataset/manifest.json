@@ -1,0 +1,10 @@
+{
+    "version": 62,
+    "documents": {
+        "dataset.csv": {
+            "hash": "bd605b457559036faaf4d97f9e06f2b8d397bf80d16b448648c7abe272048678",
+            "status": "staged",
+            "updated_at": "2026-10-01T07:31:20.737393"
+        }
+    }
+}

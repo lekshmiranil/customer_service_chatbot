@@ -1,0 +1,163 @@
+"""Intent, correction and follow-up analysis for one message. Plain Python, no model. The message is split into
+clauses, so several requests in one message are found. Spelling errors are matched with difflib and transliterated
+words with lexicon.canon(). Entities are masked before this runs."""
+import difflib
+import re
+import unicodedata
+
+from src.multilingual import languages, lexicon, lexicon_person
+
+_CLAUSE_RE = re.compile(
+    r"[.?!;,\n\u0964]+|\s(?:and|also|plus|aur|tatha|mattu|mariyu|mattrum|pinne|और|तथा|மற்றும்|మరియు|ಮತ್ತು|പിന്നെ|കൂടാതെ)\s",
+    re.IGNORECASE,
+)
+_INDEX_CACHE = {}
+_MARKER_CACHE = {}
+
+
+def _key(word):
+    if lexicon.is_native_text(word):
+        return unicodedata.normalize("NFC", word)
+    return lexicon.canon(word)
+
+
+def _keys(text):
+    return [_key(token) for token in languages.tokens(text)]
+
+
+def _match(token, cue, cutoff):
+    """Weight (0 for no match) of one customer token against one cue key."""
+    if lexicon.is_native_text(cue):
+        if token == cue:
+            return 1.0
+        return 0.9 if len(cue) >= 3 and cue in token else 0.0
+    if token == cue:
+        return 1.0
+    if len(token) >= 4 and len(cue) >= 4 and token[0] == cue[0] and abs(len(token) - len(cue)) <= 2:
+        if min(len(token), len(cue)) == 4:
+            letters = iter(cue)
+            if not (len(token) < len(cue) and all(char in letters for char in token)):
+                return 0.0
+        ratio = difflib.SequenceMatcher(None, token, cue).ratio()
+        return ratio if ratio >= cutoff else 0.0
+    return 0.0
+
+
+def _build(langs):
+    key = tuple(langs)
+    cached = _INDEX_CACHE.get(key)
+    if cached is not None:
+        return cached
+    index = {}
+    for intent in lexicon.INTENT_ORDER:
+        words, phrases = [], []
+        for lang in langs:
+            cue = lexicon.INTENT_CUES.get(intent, {}).get(lang)
+            if not cue:
+                continue
+            for word in cue["w"].split():
+                if _key(word) not in words:
+                    words.append(_key(word))
+            for phrase in cue["p"]:
+                keys = tuple(_key(part) for part in phrase.split())
+                if keys not in phrases:
+                    phrases.append(keys)
+        index[intent] = {"words": words, "phrases": phrases}
+    _INDEX_CACHE[key] = index
+    return index
+
+
+def _markers(langs):
+    key = tuple(langs)
+    cached = _MARKER_CACHE.get(key)
+    if cached is None:
+        cached = {}
+        for kind, table in lexicon.MARKERS.items():
+            cached[kind] = {_key(word) for lang in langs for word in table.get(lang, "").split()}
+        _MARKER_CACHE[key] = cached
+    return cached
+
+
+def _marker_hit(keys, cues):
+    for token in keys:
+        for cue in cues:
+            if token == cue or (lexicon.is_native_text(cue) and len(cue) >= 3 and cue in token):
+                return True
+    return False
+
+
+def _hits(keys, spec, cutoff):
+    found = {}
+    for position, token in enumerate(keys):
+        for cue in spec["words"]:
+            weight = _match(token, cue, cutoff)
+            if weight:
+                old = found.get("w:" + cue)
+                found["w:" + cue] = (max(weight, old[0]) if old else weight, (old[1] if old else set()) | {position})
+    for phrase in spec["phrases"]:
+        size = len(phrase)
+        for start in range(len(keys) - size + 1):
+            weights = [_match(keys[start + offset], phrase[offset], cutoff) for offset in range(size)]
+            if all(weights):
+                found["p:" + " ".join(phrase)] = (min(weights), set(range(start, start + size)))
+    return found
+
+
+def analyze(text, langs, thr):
+    """requests (intent, score, clause), ambiguous pairs, unknown clause count, word_count and the marker flags."""
+    thr = thr or {}
+    cutoff = float(thr.get("fuzzy_cutoff", 0.8))
+    minimum = float(thr.get("intent_confidence", 0.5))
+    margin = float(thr.get("intent_margin", 0.15))
+    index, markers = _build(langs), _markers(langs)
+    requests, ambiguous, unknown = [], [], 0
+    for clause in [part.strip() for part in _CLAUSE_RE.split(text or "") if part and part.strip()]:
+        keys = _keys(clause)
+        if not keys:
+            continue
+        scored = []
+        for intent in lexicon.INTENT_ORDER:
+            hits = _hits(keys, index[intent], cutoff)
+            if hits:
+                weight = sum(value[0] for value in hits.values())
+                positions = set().union(*[value[1] for value in hits.values()])
+                scored.append((1.0 - 0.4 ** weight, intent, positions))
+        scored.sort(key=lambda item: -item[0])
+        strong = [item for item in scored if item[0] >= minimum - 1e-9]
+        if not strong:
+            if lexicon_person.person_request(keys, langs):
+                if not any(r["intent"] == "human_agent" for r in requests):
+                    requests.append({"intent": "human_agent", "score": 0.75, "clause": clause})
+                continue
+            unknown += 1
+            continue
+        top, chosen, clash = strong[0], [strong[0]], None
+        for other in strong[1:]:
+            if other[1] in lexicon.SOCIAL or top[1] in lexicon.SOCIAL:
+                chosen.append(other)
+            elif other[2] & top[2]:
+                if top[0] - other[0] < margin - 1e-9 and clash is None:
+                    clash = (top[1], other[1])
+            else:
+                chosen.append(other)
+        if clash:
+            ambiguous.append(clash)
+            chosen = [item for item in chosen if item[1] not in clash]
+        for score, intent, _ in chosen:
+            known = next((r for r in requests if r["intent"] == intent), None)
+            if known:
+                known["score"] = max(known["score"], round(score, 3))
+            else:
+                requests.append({"intent": intent, "score": round(score, 3), "clause": clause})
+    all_keys = _keys(text)
+    return {
+        "requests": requests,
+        "ambiguous": ambiguous,
+        "unknown": unknown,
+        "word_count": sum(1 for token in languages.tokens(text) if languages.token_script(token)),
+        "correction": _marker_hit(all_keys, markers["correction"]),
+        "followup": _marker_hit(all_keys, markers["followup"]),
+        "plural": _marker_hit(all_keys, markers["plural"]),
+        "yes": _marker_hit(all_keys, markers["yes"]),
+        "confidence": min((r["score"] for r in requests), default=0.0),
+    }

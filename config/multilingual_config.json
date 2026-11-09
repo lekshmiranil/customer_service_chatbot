@@ -1,0 +1,25 @@
+{
+  "languages": ["en", "hi", "ml", "ta", "te", "kn"],
+  "default_language": "en",
+  "session": {
+    "inactivity_minutes": 30,
+    "restore_window_hours": 24,
+    "context_min_turns": 10,
+    "store_max_turns": 40
+  },
+  "thresholds": {
+    "language_confidence": 0.60,
+    "intent_confidence": 0.50,
+    "intent_margin": 0.15,
+    "fuzzy_cutoff": 0.80,
+    "followup_max_words": 5,
+    "mixed_second_share": 0.25,
+    "general_question_min_words": 4
+  },
+  "max_requests": 3,
+  "intents_need_order": ["order_status", "cancel_order", "refund", "return_exchange", "delivery_issue"],
+  "entities": {
+    "order_prefixes": ["ORD", "OD", "ODR", "INV", "BKG"],
+    "product_prefixes": ["SKU", "PRD", "PROD", "MDL", "CRS"]
+  }
+}
