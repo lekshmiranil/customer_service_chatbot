@@ -12,7 +12,7 @@ This project provides an end-to-end, enterprise-ready GenAI Customer Service Cha
 Clone the repository and install required dependencies in a Python 3.11 environment:
 
 ```bash
-git clone https://github.com/aslin72/customer_service_chatbot_LLM.git
+git clone https://github.com/lekshmiranil/customer_service_chatbot.git
 cd customer_service_chatbot_LLM
 pip install -r requirements.txt
 ```
