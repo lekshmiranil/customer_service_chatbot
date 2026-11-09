@@ -37,3 +37,12 @@ dataset/quarantine/
 dataset/update_in_progress.json
 *.pyc
 __pycache__/
+
+# ---- Local backup artefacts – do NOT version‑control ----------
+backups/
+src_backup_*/
+root_backup_before_undo/
+
+# ---- Large raw data – keep only a small sample if needed -------
+dataset/*
+!dataset/sample/      # keep a sample folder, if you create one
