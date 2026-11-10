@@ -39,3 +39,4 @@ dataset/update_in_progress.json
 __pycache__/
 
 project_archive/
+*.zip
