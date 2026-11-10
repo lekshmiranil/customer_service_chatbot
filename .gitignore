@@ -1,27 +1,20 @@
+# Local environment files
 .env
 logs/
 __pycache__/
 *.pyc
 .venv/
 venv/
+
+# Vector indexes & candidate databases (large binaries)
 faiss_index/
 faiss_candidate/
 faiss_versions/
+
+# Dataset directories (ignore staging, quarantine, and update marker)
 dataset/staging/
 dataset/quarantine/
-.env.*
-!.env.example
-
-uploads/
-test_files/
-ticket_data/
-session_data/
-sentiment_data/
-
-# Vector indexes & candidates (large binaries)
-faiss_index/
-faiss_candidate/
-faiss_versions/
+dataset/update_in_progress.json
 
 # Runtime / generated data (PII, large DBs, logs)
 session_data/
@@ -32,11 +25,8 @@ logs/
 *.sqlite*
 *.sqlite-journal
 
-# Dataset / processing artefacts
-dataset/quarantine/
-dataset/update_in_progress.json
-*.pyc
-__pycache__/
+# Miscellaneous
+test_files/
 
+# End of .gitignore
 project_archive/
-*.zip

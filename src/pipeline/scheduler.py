@@ -222,6 +222,8 @@ def execute_pipeline_update_with_retries(token=None):
             shutil.copytree(CANDIDATE_DB_PATH, ACTIVE_DB_PATH)
             if os.path.exists(CANDIDATE_DB_PATH):
                 shutil.rmtree(CANDIDATE_DB_PATH, ignore_errors=True)
+            # Record activation event for audit/monitoring
+            record_metric("pipeline_activation", outcome="activated", version=snapshot_version)
 
             print(f"Update passed quality gate. Activated! Starting {HEALTH_CHECK_WINDOW_SECONDS}s health observation window...")
 
