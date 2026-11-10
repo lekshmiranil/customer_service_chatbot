@@ -1,10 +1,15 @@
 {
-    "version": 62,
+    "version": 63,
     "documents": {
         "dataset.csv": {
             "hash": "bd605b457559036faaf4d97f9e06f2b8d397bf80d16b448648c7abe272048678",
             "status": "staged",
             "updated_at": "2026-10-01T07:31:20.737393"
+        },
+        "test_dummy.txt": {
+            "hash": "4d9f0edad8a359c56dde7ac1b55bc1ff7ef361cfcbf1fe0c0d2325a09f8f55bb",
+            "status": "staged",
+            "updated_at": "2026-11-10T16:49:32.550297"
         }
     }
 }

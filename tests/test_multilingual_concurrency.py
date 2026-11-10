@@ -105,3 +105,12 @@ if failures:
 shutil.rmtree(tmp, ignore_errors=True)
 print("failures:", len(failures))
 sys.exit(1 if failures else 0)
+
+# --- At the very bottom of your test script ---
+
+if __name__ == "__main__":
+    if failures:
+        print("bridge.LAST_ERROR:", ascii(bridge.LAST_ERROR))
+    shutil.rmtree(tmp, ignore_errors=True)
+    print("failures:", len(failures))
+    sys.exit(1 if failures else 0)
