@@ -6,33 +6,40 @@ This project provides an end-to-end, enterprise-ready GenAI Customer Service Cha
 
 ---
 
-## Quick Start & Usage
+## Quick Start
 
-### 1. Installation
-Clone the repository and install required dependencies in a Python 3.11 environment:
+Requires Python 3.11 and Tesseract OCR 5.x (needed for image uploads; on Windows use the UB Mannheim build).
 
-```bash
+```powershell
 git clone https://github.com/lekshmiranil/customer_service_chatbot.git
-cd customer_service_chatbot_LLM
-pip install -r requirements.txt
+cd customer_service_chatbot
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
 ```
 
-### 2. Environment Configuration
-Create a `.env` file in the root folder with your Google Gemini API key and optional configurations (see `.env.example` for all defaults):
+Create a `.env` file in the root (see `.env.example`):
 
-```bash
+```
 GOOGLE_API_KEY="your_api_key_here"
 ```
 
-### 3. Launching the Chatbot
-Start the Streamlit application from the project root:
-
-```bash
-streamlit run src/main.py
+```powershell
+python -m streamlit run src/main.py
 ```
 
-The web application opens automatically in your browser. On first startup, if no vector index exists, it automatically initializes the knowledge base from `dataset/staging/`.
+On first start, if no vector index exists, the knowledge base is built from `dataset/staging/`. `requirements.lock.txt` lists the exact versions the project was tested with.
 
+## Running tests and evaluations
+
+Run from the project root. Set `PYTHONPATH` first so scripts can find `src` and their helper modules. `DRY_RUN_LLM=true` mocks the language model so no API calls are used.
+
+```powershell
+$env:PYTHONPATH = "$PWD;$PWD\tests;$PWD\eval"
+$env:DRY_RUN_LLM = "true"
+python tests\test_rag_verify.py
+python eval\eval_rag_run.py
+```
 ---
 
 ## Project Architecture & Package Structure
@@ -189,22 +196,12 @@ python eval_multilingual_run.py
 
 ---
 
-## Running the Complete Automated Test Suite
+## Running the complete test suite
 
-To run all 51 standalone unit and regression tests:
+All 51 test scripts in `tests\` exit with code 0 when they pass:
 
-```bash
-# Run individual test files:
-python test_tickets_calendar.py
-python test_compare.py
-python test_rag_verify.py
-python test_sentiment_classify.py
-python test_multilingual_session.py
-
-# Or run all evaluation suites:
-python eval_run.py
-python eval_tickets_run.py
-python eval_rag_run.py
-python eval_sentiment_run.py
-python eval_multilingual_run.py
+```powershell
+$env:PYTHONPATH = "$PWD;$PWD\tests;$PWD\eval"
+$env:DRY_RUN_LLM = "true"
+Get-ChildItem tests\test_*.py | ForEach-Object { python $_.FullName; "$($_.Name): exit $LASTEXITCODE" }
 ```
