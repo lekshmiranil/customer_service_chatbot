@@ -11,8 +11,7 @@ faiss_index/
 faiss_candidate/
 faiss_versions/
 
-# Dataset directories (ignore staging, quarantine, and update marker)
-dataset/staging/
+# Dataset directories (ignore quarantine and update marker)
 dataset/quarantine/
 dataset/update_in_progress.json
 
