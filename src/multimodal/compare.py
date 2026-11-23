@@ -429,7 +429,7 @@ def _no_claims_reply(extraction: ExtractionResult) -> str:
     sentence = f"I can see {label} {' and '.join(order_ids[:2])} in your file"
     if len(dates) == 1:
         sentence += f", dated {_format_iso(dates[0])}"
-    return sentence + ". Is this the order you are asking about?"
+    return sentence + ". Is this the order you are asking about? If so, confirm it by entering the order number in the message box above the file and submitting the file again."
 
 
 def _build_reply(status: str, checks: list) -> str:
