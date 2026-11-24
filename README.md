@@ -111,7 +111,7 @@ Located in `src/multimodal`, this layer allows customers to upload receipts, ord
 
 ### Checks
 ```bash
-python eval_run.py
+python eval\eval_run.py
 ```
 *Executes all 11 evaluation scenarios (blurred, mismatched, delayed, expired, injection) and outputs `eval_results.md`.*
 
@@ -132,7 +132,7 @@ Located in `src/tickets`, unresolved customer issues are converted into structur
 
 ### Checks
 ```bash
-python eval_tickets_run.py
+python eval\eval_tickets_run.py
 ```
 *Runs 20 end-to-end scenarios and updates `eval_results_tickets.md`.*
 
@@ -152,7 +152,7 @@ Located in `src/rag`, provides grounded, cited answers over product documents, F
 ### Checks
 ```bash
 python make_rag_corpus.py
-python eval_rag_run.py
+python eval\eval_rag_run.py
 ```
 *Evaluates 48 scenarios across conflicts, historical dates, access boundaries, and injections.*
 
@@ -171,7 +171,7 @@ Located in `src/sentiment`, analyzes tone, history, and urgency to adjust chatbo
 
 ### Checks
 ```bash
-python eval_sentiment_run.py
+python eval\eval_sentiment_run.py
 ```
 *Evaluates 34 scenarios and outputs `eval_results_sentiment.md`.*
 
@@ -190,7 +190,7 @@ Located in `src/multilingual`, delivers customer support across 6 Indic language
 
 ### Checks
 ```bash
-python eval_multilingual_run.py
+python eval\eval_multilingual_run.py
 ```
 *Executes evaluation across assistant-written, user-written, and unseen conversation suites.*
 
